@@ -16,11 +16,14 @@ compatibility requirements would violate the unmodified-kernel policy.
 
 ## Decision
 
-Use OSV's official `osv-scanner-reusable-pr.yml` at the existing v2.3.8 release.
-It scans the whole base and proposed trees, compares the reports, and fails on
-new findings. Keep `fail-on-vuln: true` and SARIF upload enabled. There are no
+Use OSV's official scanner and reporter actions at the existing v2.3.8 release,
+with the base/proposed comparison used by its PR reusable workflow. Check out
+the event's exact base SHA and proposed merge SHA with `fetch-depth: 1` into the
+same `source/` directory so both scans use identical source paths. Scan each
+complete tree, compare the reports, and fail on newly introduced findings.
+Keep `--fail-on-vuln=true` and SARIF upload enabled. There are no
 ignored packages/advisories, excluded directories, or lowered severity thresholds.
-Both complete scan JSON reports are uploaded by the reusable workflow, so baseline
+Both complete scan JSON reports are uploaded as artifacts, so baseline
 findings remain visible for upstream maintenance; a green PR check does not mean
 the baseline is vulnerability-free.
 
@@ -35,9 +38,13 @@ not permission to modify other upstream paths or add unrelated root automation.
 ## Consequences and validation
 
 New dependency vulnerabilities anywhere in the scanned tree still fail the PR.
-Existing upstream findings do not force unrelated upstream divergence. The official
-PR workflow fetches history to compare branches; this costs more checkout time
-than the former single-tree scan.
+Existing upstream findings do not force unrelated upstream divergence. The initial official PR reusable workflow attempt required `fetch-depth: 0`
+and remained in checkout for over six minutes. Two shallow tree checkouts avoid
+that cost without excluding any dependency sources. Reports live outside the
+checkout so the second checkout cannot remove or replace the base report. The
+existing check name is preserved, and newer runs cancel obsolete scans for the
+same PR. Scanner findings may return nonzero; the reporter is the failing gate,
+including when a scan report is missing or invalid.
 
 Run locked installation, typecheck, unit tests, production build, and the real
 GitHub dependency check. Record exact results in the changelogs. The separately

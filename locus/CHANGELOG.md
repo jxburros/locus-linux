@@ -73,3 +73,20 @@ Append-only log of meaningful Locus-layer work in this repository. Never delete,
 - Next agent should start with: decision 002 and PR #2's dependency check; use full npm audit for subsequent shell dependency updates.
 - Open questions: the existing multi-tab storage defect and image/native phase decisions.
 - Risks or assumptions: PR gating detects newly introduced findings; pre-existing upstream findings require upstream maintenance separately.
+
+## 2026-10-03 - Agent: OpenAI Codex (GPT-6) - Bound dependency scan checkout cost
+
+### Changed
+- Replaced the official PR reusable workflow's full-history checkout after hosted run 37155373101 remained in checkout for over six minutes. Use the same pinned official OSV scanner/reporter actions with exact base/merge SHA shallow checkouts into the same source path.
+- Preserve complete-tree comparison, failure-on-new-findings, the existing check name, and SARIF upload. Store and upload both complete reports outside the checkout; cancel obsolete runs for the same PR. Updated decision 002 to the final implementation.
+
+### Not completed
+- Existing upstream baseline findings and the independent multi-tab defect remain unchanged.
+
+### Notes
+- Workflow-only refinement after successful dependency audit, 497 unit tests, build, and offline PWA checks; no shell source/package changes since those checks. Parsed the YAML and verified refs, report paths, pinned actions, and reporter failure arguments. Hosted CI verifies the resulting job.
+
+### Handover
+- Next agent should start with: decision 002 and the latest PR dependency check/report artifacts.
+- Open questions: the existing browser storage defect.
+- Risks or assumptions: comparison needs two complete trees, not full history; the reporter must remain the failing gate on new findings or missing/invalid scan data.
