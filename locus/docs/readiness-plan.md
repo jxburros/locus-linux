@@ -1,6 +1,6 @@
 # Locus Linux Readiness Plan
 
-> This repo's slice of the canonical integration plan (`locus-os/development-docs/linuxIntegrationPlan.md`). If the two conflict, the canonical plan wins. Phases here are labeled R0–R5; the cross-repo phase gates are M0–M6.
+> Image/kernel workstreams within the local [canonical integration plan](integration-plan.md). If they conflict, the integration plan wins. Phases here are R0–R5; platform gates are M0–M6. All required shell source and contracts are in `locus/shell/`.
 >
 > **Status legend:** each phase is `done`, `active`, or `not started`. Update statuses as work lands; record gate decisions in `locus/docs/decisions/`.
 
@@ -8,6 +8,7 @@
 
 - Root `AGENTS.md` / `CLAUDE.md`; `locus/` directory with README, this plan, changelog, and skills.
 - Policy established while the tree is still pristine: wrapper-first, additive-only Locus content, merge-based upstream sync, decision records before divergence.
+- Reference independence (2026-10-03): shell, Core contracts, tests, identity, design, architecture, and platform guidance are now local; see [decision 001](decisions/001-self-contained-locus-source.md). This does not complete any image gate.
 
 ## R1 — Base pinning (maps to M2 entry) — **not started; blocked on maintainer decision**
 
@@ -26,8 +27,8 @@ The tree currently sits on mainline v7.2-rc2 — a moving release candidate, uns
 ## R3 — Image build pipeline (maps to M2) — **not started; blocked on builder decision**
 
 - Choose the builder — decision record required. Candidates: **mkosi** over a mainstream base distro (pragmatic default: fast iteration, systemd-native, easy package pulls) vs **Buildroot** (minimal, fully source-built, more control, slower iteration). debos is the middle option.
-- `locus/build/` produces a QEMU-bootable disk image: bootloader (systemd-boot) → pinned kernel → systemd userspace → `locus-session.service` → cage → chromium `--kiosk` with a dedicated persistent profile → `locus-shelld` (trivial static server) serving the locus-os production bundle from `http://localhost:<port>`. Never `file://` — it breaks origin/storage semantics.
-- The locus-os bundle enters the image as a build input (built from a pinned locus-os ref), not a committed artifact.
+- `locus/build/` produces a QEMU-bootable disk image: bootloader (systemd-boot) → pinned kernel → systemd userspace → `locus-session.service` → cage → chromium `--kiosk` with a dedicated persistent profile → `locus-shelld` (trivial static server) serving the production bundle built from `locus/shell/` at `http://localhost:<port>/locus-os/`. Never `file://` — it breaks origin/storage semantics.
+- Build the shell from this checkout using `make -C locus shell-build`. Its `locus/shell/dist/` enters the image as a generated build input, not a committed artifact. Record this repository commit and lockfile; no sibling repository fetch is required. Preserve `/locus-os/` as the serving path until an explicit origin/profile migration is designed.
 - Exit criteria: `run-qemu.sh` boots to the Locus dashboard; user data survives reboot (persistent profile); image rebuild is reproducible from a clean checkout.
 
 ## R4 — CI (maps to M2 exit) — **not started**
@@ -38,7 +39,7 @@ The tree currently sits on mainline v7.2-rc2 — a moving release candidate, uns
 
 ## R5 — Native services era (maps to M3–M5) — **not started; placement decision open**
 
-- `locus-cored` (object store + file bytes over localhost JSON-RPC first, then notifications/keyring/timers/AI provider) — whether it lives here under `locus/cored/`, in locus-os, or in a third repo is an open decision at M3 start.
+- `locus-cored` (object store + file bytes over localhost JSON-RPC first, then notifications/keyring/timers/AI provider) — its component placement (proposed `locus/cored/`) remains a decision at M3 start. Keep the shell-facing contracts and conformance tests here regardless of daemon implementation choice.
 - This repo's role regardless: packaging the daemon into the image, session wiring, and sandbox/isolation policy as manifests become real confinement.
 
 ## Upstream sync policy (from R1 onward)

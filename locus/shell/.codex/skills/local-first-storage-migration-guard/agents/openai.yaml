@@ -1,0 +1,6 @@
+interface:
+  display_name: "Local-First Storage and Migration Guard"
+  short_description: "Use when changing local storage, migrations, or import/export paths."
+  default_prompt: "Use $local-first-storage-migration-guard to work safely on the relevant repository task."
+policy:
+  allow_implicit_invocation: true

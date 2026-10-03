@@ -1,74 +1,104 @@
 # AGENTS.md - Locus Linux Agent Instructions
 
-> Canonical AI-agent instruction source for this repository. `CLAUDE.md` and other tool overlays defer to this file.
+> Canonical repository instruction source. Tool overlays and shell instructions defer to this file for repository layout and kernel policy.
 
-## 1. What This Repository Is
+## 1. What this repository owns
 
-Locus Linux is the operating-system layer of the Locus project: the vehicle for turning **Locus OS** (`jxburros/locus-os`, a local-first, AI-governed personal operating environment currently built as a browser PWA) into a bootable Linux-based operating system.
+Locus Linux contains the upstream Linux tree and the complete Locus userspace
+source, Core contracts, tests, product specifications, and platform plan under
+`locus/`. A separate web-app checkout is not required for reference, development,
+or shell validation. The imported browser/PWA shell is in `locus/shell/`; a
+bootable image and native Core daemon do not exist yet.
 
-The tree is currently a **pristine, unmodified mirror of upstream Linux** (v7.2-rc2 at the time governance was added). Everything Locus-specific lives in exactly two places:
+**Wrapper first, fork only on demonstrated need.** Locus is a distribution over
+an unpatched kernel. Do not invent kernel work to implement userspace features.
 
-1. This file, `CLAUDE.md`, and other root-level agent/tool instruction files.
-2. The `locus/` directory — docs, build configs, skills, and changelog.
-
-**Policy: wrapper first, fork only on demonstrated need.** Locus Linux is a *distribution* built on an unpatched upstream kernel (the ChromeOS model: commodity kernel, custom userspace and shell). Do not patch kernel sources without an explicit maintainer decision recorded in `locus/docs/` — most Locus capabilities are userspace work.
-
-## 2. Instruction Hierarchy
+## 2. Instruction hierarchy and required reading
 
 1. The user's explicit request.
-2. This file.
-3. `locus/README.md` and `locus/docs/readiness-plan.md`.
-4. The canonical integration plan in the sibling repo: `locus-os/development-docs/linuxIntegrationPlan.md` (state assessments, target architecture, phase gates M0–M6).
-5. Locus OS identity constraints (`locus-os/development-docs/coreIdentity.md`) — local-first, proposal-governed AI, no raw secret exposure, no silent destruction, honesty about scaffolds. They bind this repo too.
-6. Upstream kernel development conventions, for any (approved) kernel-source work.
+2. This file (repository boundaries and kernel policy).
+3. `locus/shell/development-docs/coreIdentity.md` (binding identity constraints).
+4. `locus/README.md`, `locus/docs/integration-plan.md` (canonical M0–M6 plan),
+   and `locus/docs/readiness-plan.md` (R0–R5 image work).
+5. For shell work: `locus/shell/AGENTS.md`, its development manifesto,
+   architecture, product roadmap, and task-matched skills.
+6. Upstream kernel conventions for approved kernel work.
 
-## 3. Required Reading Before Meaningful Changes
+Read the task-matched skills before changing their area:
 
-1. This file.
-2. `locus/README.md` (layout and policy).
-3. `locus/docs/readiness-plan.md` (what is planned, what phase is active).
-4. The matching skill under `locus/skills/`:
-   - `locus-kernel-fork-hygiene`: any change touching kernel sources, upstream sync, branches, or tree layout.
-   - `locus-image-boot`: any work on kernel configs, image building, boot/session components, or CI for the bootable image.
+- `locus/skills/locus-kernel-fork-hygiene/SKILL.md`: tree layout, branches,
+  upstream sync, kernel work.
+- `locus/skills/locus-image-boot/SKILL.md`: image, kernel configuration,
+  session/boot, image CI.
+- `locus/shell/skills/spec-driven-development/SKILL.md`: shell changes;
+  additional shell skills are listed in its `AGENTS.md`.
 
-## 4. Hard Constraints
+## 3. Hard constraints
 
-- **Keep the upstream tree pristine.** No edits to kernel sources, Makefiles, Kconfig, Documentation, or any upstream path without a maintainer-approved decision record in `locus/docs/decisions/`.
-- **All Locus content stays under `locus/` plus root agent docs.** No scattering of Locus files through the upstream tree.
-- **No binary blobs in git** (images, rootfs archives, model weights). Build outputs are artifacts, not sources.
-- **Upstream sync is merge-based from stable/LTS tags** on a documented cadence — never rebase published Locus branches over upstream, and never cherry-pick random mainline commits.
-- **Nothing here may weaken Locus identity constraints**: the image must remain local-first (no default cloud dependency, no telemetry), AI writes stay proposal-governed, secrets stay brokered.
-- **Do not invent kernel work.** There is currently no approved kernel patch, no chosen LTS base, no chosen image builder — see the open decisions in the readiness plan. Treat plan items as plans until promoted.
+- Keep upstream kernel sources, Makefiles, Kconfig, Documentation, and other
+  upstream paths pristine. Kernel patches require a maintainer-approved decision
+  in `locus/docs/decisions/` before code changes.
+- All Locus content lives under `locus/`, except root agent instructions. Existing
+  repository automation outside that directory is not authorization to scatter
+  more Locus files through the kernel tree. Decision 002 permits maintenance of
+  the existing root dependency-scan workflow; its complete-tree PR baseline
+  comparison remains a failing gate for newly introduced vulnerabilities.
+- No binary blobs, built images, rootfs archives, model weights, `node_modules`,
+  or built shell bundles in git. Text source assets are allowed.
+- Upstream sync is merge-based from the selected stable/LTS series; never rebase
+  published Locus branches or cherry-pick arbitrary mainline fixes.
+- Preserve local-first operation, no default cloud/telemetry dependency,
+  proposal-governed AI writes, brokered secrets, audit, and recoverable deletion.
+- There is no approved kernel patch, chosen LTS base, or image builder. Record
+  gate decisions before implementing those phases; do not present plans as code.
 
-## 5. Change Workflow
+## 4. Change workflow
 
-1. Read the governing docs and matching skill.
-2. Make the smallest safe change; keep Locus content additive and isolated.
-3. Validate appropriately (see Section 6) or record why validation was skipped.
-4. Append an entry to `locus/CHANGELOG.md` (same format as locus-os; identity `Agent: <Tool Name> (<Model Name>)`).
-5. Update `locus/README.md` / `locus/docs/` if layout, policy, or plan state changed.
-6. Report honestly, including anything incomplete or unvalidated.
+1. Read local governing documents and matching skills; inspect actual code/tests.
+2. Make the smallest safe change within `locus/` and root agent docs.
+3. Validate as below and report skipped or failed checks honestly.
+4. Append to `locus/CHANGELOG.md` using `Agent: <Tool Name> (<Model Name>)`.
+   For shell changes also append to `locus/shell/CHANGELOG.md`.
+5. Update local README, architecture, plan, and skills when their claims change.
+6. Work on a topic branch, not `master`. Never add an AI Signed-off-by tag.
 
-## 6. Validation Expectations
+## 5. Validation
 
-- Docs/skills/config-fragment-text changes: no build required.
-- Kernel config fragments: validate with `make defconfig` merged with the fragment (`scripts/kconfig/merge_config.sh`) once fragments exist; record the target arch.
-- Image pipeline changes: the image must build reproducibly and boot in QEMU headless to the Locus shell; record the exact commands run.
-- Any (approved) kernel-source change: the affected config must build; follow upstream patch hygiene (one logical change per commit, kernel commit-message style).
-- Full kernel builds are expensive; do not run them for changes that cannot affect the build, and say so.
+From the repository root:
 
-## 7. Relationship To locus-os
+```sh
+make -C locus shell-install
+make -C locus shell-check
+make -C locus shell-e2e  # needs Chromium; setup is documented in locus/README.md
+```
 
-- `locus-os` owns the shell, Core services, AI governance, and their contracts; this repo consumes the built bundle and, in later phases, hosts native implementations of Core contracts (`locus-cored`).
-- The canonical cross-repo plan lives in locus-os (`development-docs/linuxIntegrationPlan.md`); `locus/docs/readiness-plan.md` here is this repo's slice of it. If they conflict, the locus-os plan wins; flag the conflict.
-- Cross-reference significant cross-repo work in both changelogs.
+- `shell-check`: typecheck, full unit suite, production build. No sibling checkout.
+- `shell-e2e`: real-browser sandbox, widgets, multi-tab, and offline-PWA checks.
+- Docs/skills-only edits: verify local paths and consistency; no kernel build.
+- Kernel config: merge the fragment over target `defconfig`, build, record arch.
+- Image pipeline: reproducible image build and headless QEMU boot to shell;
+  record exact commands and evidence. A shell build is not a boot test.
+- Verify the changed file list stays inside the permitted Locus boundary.
 
-## 8. Current State (update when it changes)
+## 6. Reference ownership
 
-- Tree: upstream Linux v7.2-rc2, zero divergence from `origin/master` apart from `locus/` and root agent docs.
-- Active phase: M0 (governance) complete for this repo; M2 (LTS base pin, kernel config fragment, image pipeline, CI) is the next work here and is **not started**.
-- No `.config`, no CI, no image tooling exists yet.
+`locus/docs/reference-guide.md` maps concepts to local specifications, executable
+contracts, and tests. `locus/docs/shell-import.json` records the original source
+commit and file hashes; it is provenance, not a remote dependency or sync job.
+This repository's source and docs govern Linux work. Future shell changes are
+made here; importing fixes from the old web repo is optional and reviewed.
+No live instruction, image build, or test should require that repository.
 
-## Final Principle
+Historical changelogs/audits describe earlier states and are not current policy.
+Do not rewrite their history. The canonical platform plan takes precedence over
+old phase claims; executable source/tests establish current shell behavior.
 
-Leave this repository boring: indistinguishable from upstream everywhere except `locus/`, with every divergence deliberate, documented, and reversible.
+## 7. Current state
+
+- Kernel version in this checkout: v7.2-rc2; no Locus kernel modifications in
+  this change. LTS selection remains R1.
+- R0 governance and self-contained shell/reference ownership are complete.
+- R1–R5 image/native work remains unstarted. The existing dependency-scan
+  workflow is not kernel/image build CI.
+- Shell v0.6.0, its tests, and specifications are maintained in `locus/shell/`.
+- No bootable image, native daemon, IPC backend, or native sandbox is claimed.

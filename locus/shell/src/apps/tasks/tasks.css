@@ -1,0 +1,55 @@
+.tasks__add { display: flex; gap: var(--s-2); margin-bottom: var(--s-4); }
+.tasks__add .field { flex: 1; }
+.tasks__list { border: var(--border-w) solid var(--border); margin-bottom: var(--s-6); }
+.tasks__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  border-bottom: var(--border-w) solid var(--border);
+  padding-right: var(--s-3);
+}
+.tasks__item:last-child { border-bottom: 0; }
+.tasks__check {
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-3); min-height: var(--tap); cursor: pointer;
+  flex: 1; min-width: 0;
+}
+.tasks__check input { width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0; }
+.tasks__title { color: var(--text); }
+.tasks__title.is-done { color: var(--text-3); text-decoration: line-through; }
+.tasks__empty { padding: var(--s-4); }
+
+.tasks__meta { display: flex; align-items: center; gap: var(--s-2); flex: none; }
+.tasks__project { max-width: 12ch; overflow: hidden; text-overflow: ellipsis; }
+.tasks__prio {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px var(--s-2);
+  border: var(--border-w) solid var(--border);
+  color: var(--text-3);
+}
+.tasks__prio--high { color: var(--accent); border-color: var(--accent); }
+.tasks__prio--low { opacity: 0.6; }
+.tasks__prio:hover { border-color: var(--text-3); }
+.tasks__del {
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  padding: 0 var(--s-1);
+  min-width: 24px;
+}
+.tasks__del:hover { color: var(--accent); }
+
+/* Cross-core additions: due dates (Cardspoke field), reminders (Time Core). */
+.tasks__due { width: 132px; min-height: 28px; font-size: var(--fs-xs); padding: 0 var(--s-1); }
+.tasks__overdue {
+  font-size: var(--fs-xs);
+  color: var(--accent-crimson, #b3395c);
+  border: var(--border-w) solid var(--accent-crimson, #b3395c);
+  padding: 0 var(--s-1);
+}
+.tasks__remind { color: var(--text-3); padding: 0 var(--s-1); }
+.tasks__remind:hover { color: var(--accent); }
+.tasks__hint { font-size: var(--fs-sm); }
+.tasks__link { color: var(--accent); text-decoration: underline; }

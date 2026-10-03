@@ -1,0 +1,10 @@
+.preview { display: flex; flex-direction: column; gap: var(--s-2); height: 100%; min-height: 0; }
+.preview__lead { font-size: var(--fs-xs); color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; }
+.preview__list { display: flex; flex-direction: column; gap: var(--s-1); overflow: hidden; }
+.preview__row { display: flex; align-items: center; gap: var(--s-2); font-size: var(--fs-sm); color: var(--text-2); min-width: 0; }
+.preview__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.preview__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
+.preview__empty { font-size: var(--fs-sm); }
+.preview--center { align-items: center; justify-content: center; text-align: center; gap: var(--s-2); }
+.preview__glyph { font-size: var(--fs-xl); color: var(--accent); }
+.preview__hint { font-size: var(--fs-xs); }

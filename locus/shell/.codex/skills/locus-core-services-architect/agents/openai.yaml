@@ -1,0 +1,6 @@
+interface:
+  display_name: "Locus Core Services Architect"
+  short_description: "Use when changing Locus core services, registry, or spatial shell."
+  default_prompt: "Use $locus-core-services-architect to work safely on the relevant repository task."
+policy:
+  allow_implicit_invocation: true
