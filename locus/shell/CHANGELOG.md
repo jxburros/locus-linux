@@ -532,3 +532,23 @@ files/people/web/dev), `npm run build` succeeds, `npm audit --omit=dev` reports
 - Next agent should start with: `../../AGENTS.md`, this package's `AGENTS.md`, and `../docs/reference-guide.md`.
 - Open questions: image/base/daemon decisions and intermittent concurrent-append behavior.
 - Risks or assumptions: browser contracts are local references for future native conformance; passing browser tests does not certify native enforcement or a bootable system.
+
+## 2026-10-03 - Agent: OpenAI Codex (GPT-6) - Dependency CI repair
+
+### Changed
+- Raised Vitest to ^4.1.11 and refreshed its lockfile plus vulnerable transitive baseline-browser-mapping, browserslist, nanoid, and undici to patched compatible versions. Kept all production dependency records unchanged; npm deduplicated Vitest onto the existing Vite 6 toolchain.
+- Documented the enclosing repository's OSV base/PR comparison gate. Its whole-tree scans and failure-on-new-vulnerability behavior are retained; see `../docs/decisions/002-dependency-scan-pr-baseline.md`.
+
+### Not completed
+- No change to the inherited multi-tab browser defect or upstream kernel documentation dependencies.
+
+### Notes
+- Locked install, full npm audit (zero vulnerabilities), typecheck, all 497 unit tests, and production build passed. Existing production bundle warnings remain.
+- No runtime source, original test assertion, or import-provenance hash was edited for this fix. Dependency scanning is not a shell test gate.
+
+- `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium CI=1 npm run test:e2e -- e2e/pwa.spec.ts` passed both production service-worker/offline-launch checks. Full browser suite was not rerun: the known storage defect is unrelated and unchanged.
+
+### Handover
+- Next agent should start with: the local package/lockfile and decision 002; preserve the patched dependency graph.
+- Open questions: the separately documented multi-tab defect.
+- Risks or assumptions: OSV compares introduced findings against the upstream base; existing baseline reports remain visible.

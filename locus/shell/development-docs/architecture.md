@@ -13,6 +13,9 @@ The complete shell and Core source and tests are local; no sibling checkout or
 remote bundle is used. `dist/` is generated here for preview and future image
 assembly. The imported GitHub Pages and CI workflows are not active in this
 package; run the validation targets documented in the enclosing README.
+The enclosing OSV dependency workflow compares complete base/proposed trees and
+fails on new vulnerabilities (decision 002); it does not execute shell tests.
+The local lockfile includes compatible security updates to the imported tooling.
 Only the SVG source icon is retained; PNG-only touch-icon support is not claimed.
 The `/locus-os/` serving path is preserved for Vite, manifest, worker, and tests.
 

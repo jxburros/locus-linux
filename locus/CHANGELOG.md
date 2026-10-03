@@ -48,3 +48,28 @@ Append-only log of meaningful Locus-layer work in this repository. Never delete,
 - Next agent should start with: `locus/README.md`, `locus/docs/reference-guide.md`, and `locus/docs/integration-plan.md`; all necessary specifications/contracts are local.
 - Open questions: existing LTS/builder/daemon/hardware decisions; root workflow placement exception for future shell CI; inherited intermittent multi-tab append loss (blocking a clean browser gate).
 - Risks or assumptions: the imported browser baseline is a reference implementation, not proof of native or image readiness. Future shell changes belong here; original hashes are provenance, not an automatic synchronization rule.
+
+## 2026-10-03 - Agent: OpenAI Codex (GPT-6) - Dependency CI repair
+
+### Changed
+- Diagnosed PR #2's failing check from GitHub run 37154654681: OSV reported introduced npm development-dependency vulnerabilities and pre-existing upstream Sphinx/Python findings. This was the dependency job, not the separately documented browser test failure.
+- Updated Vitest/mocker to 4.1.11 and the affected compatible transitive packages: baseline-browser-mapping 2.11.27, browserslist 4.29.3, nanoid 3.3.19, and undici 7.30.0. Regenerated the lockfile with npm; resolution also deduplicated Vitest onto the existing Vite 6 installation. Production dependency records are unchanged.
+- Switched the existing OSV workflow to its official PR comparison workflow at the same v2.3.8 release, keeping full-tree scans, failing on newly introduced vulnerabilities, and publishing both baseline/proposed reports. Added decision 002 and the narrow existing-workflow layout exception. No upstream requirements, ignored vulnerabilities, or severity thresholds were changed.
+- Updated README and architecture guidance for dependency validation.
+
+### Not completed
+- Existing upstream dependency findings remain in the baseline reports; green PR scanning does not certify a vulnerability-free upstream tree.
+- The separately documented intermittent multi-tab storage issue is unchanged. No kernel/image/native work was undertaken.
+
+### Notes
+- `npm ci` and full `npm audit` passed (zero vulnerabilities, development dependencies included).
+- `make -C locus shell-check` passed: typecheck, 20 suites / 497 unit tests, and production build. Production Vite chunk-size/dynamic-import warnings remain.
+- Parsed the workflow YAML and inspected the official reusable workflow's base/head scanning, reporting, and failure semantics. GitHub's check on the pushed commit is the authoritative OSV validation.
+- Original import hashes remain provenance; later dependency maintenance intentionally changes the local lockfile. No kernel build was required.
+
+- `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium CI=1 npm run test:e2e -- e2e/pwa.spec.ts` passed both production service-worker/offline-launch checks. Full browser suite was not rerun: the known storage defect is unrelated and unchanged.
+
+### Handover
+- Next agent should start with: decision 002 and PR #2's dependency check; use full npm audit for subsequent shell dependency updates.
+- Open questions: the existing multi-tab storage defect and image/native phase decisions.
+- Risks or assumptions: PR gating detects newly introduced findings; pre-existing upstream findings require upstream maintenance separately.

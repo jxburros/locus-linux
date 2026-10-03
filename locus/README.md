@@ -93,7 +93,10 @@ has been chosen, and no image boot has been verified. R1 base selection and R3
 builder decisions remain the next image prerequisites.
 
 Imported tests run locally through the targets above. The existing root dependency
-scan does not validate the shell or an image. A runnable shell CI workflow has not
+scan compares the complete PR/base trees and fails on newly introduced
+vulnerabilities; both scan reports retain the existing upstream findings. See
+[decision 002](docs/decisions/002-dependency-scan-pr-baseline.md). It does not run
+shell tests or validate an image. A runnable shell CI workflow has not
 been installed: GitHub discovers workflows only at the repository root, outside
 the current permitted Locus tree. Record a layout-policy decision before adding it.
 

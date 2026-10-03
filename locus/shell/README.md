@@ -9,7 +9,10 @@ are retained; current platform gates are in [the integration plan](../docs/integ
 
 The `/locus-os/` URL base is deliberately preserved. Only SVG source icons are
 shipped here; PNG-only mobile home-screen icon support is not claimed. Imported
-Pages/deployment workflows are not installed in this package.
+Pages/deployment workflows are not installed in this package. The enclosing
+repository's OSV PR check scans the complete base/proposed dependency trees and
+fails on new findings. Run `npm audit` here to audit the locked shell dependencies,
+including development tooling; keep the lockfile's security fixes when updating.
 
 A **local-first, AI-native personal operating environment** that runs in the browser and installs as a PWA on Android, desktop, or anywhere Chrome runs.
 

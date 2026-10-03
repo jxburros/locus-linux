@@ -40,7 +40,9 @@ Read the task-matched skills before changing their area:
   in `locus/docs/decisions/` before code changes.
 - All Locus content lives under `locus/`, except root agent instructions. Existing
   repository automation outside that directory is not authorization to scatter
-  more Locus files through the kernel tree.
+  more Locus files through the kernel tree. Decision 002 permits maintenance of
+  the existing root dependency-scan workflow; its complete-tree PR baseline
+  comparison remains a failing gate for newly introduced vulnerabilities.
 - No binary blobs, built images, rootfs archives, model weights, `node_modules`,
   or built shell bundles in git. Text source assets are allowed.
 - Upstream sync is merge-based from the selected stable/LTS series; never rebase
