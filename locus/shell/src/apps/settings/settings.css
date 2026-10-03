@@ -1,0 +1,43 @@
+.settings { max-width: 760px; }
+.settings__row {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+  padding: var(--s-3) 0; border-bottom: var(--border-w) solid var(--border); min-height: 56px;
+}
+.settings__row:last-child { border-bottom: 0; }
+.settings__label { display: flex; flex-direction: column; gap: 2px; }
+.settings__label > span:first-child { font-weight: var(--fw-medium); }
+.settings__label .faint { font-size: var(--fs-xs); }
+
+.settings__segmented { display: flex; border: var(--border-w) solid var(--border); flex-shrink: 0; }
+.settings__segmented button {
+  padding: 0 var(--s-3); min-height: 36px; font-size: var(--fs-xs); color: var(--text-2);
+  border-right: var(--border-w) solid var(--border);
+}
+.settings__segmented button:last-child { border-right: 0; }
+.settings__segmented button.is-active { background: var(--accent); color: var(--accent-ink); }
+
+.settings__accents { display: flex; gap: var(--s-2); flex-shrink: 0; }
+.settings__accent {
+  width: 28px; height: 28px; background: var(--swatch); border: 2px solid transparent; outline: var(--border-w) solid var(--border);
+}
+.settings__accent.is-active { border-color: var(--bg); outline-color: var(--text); }
+
+.settings__name { max-width: 220px; }
+.settings__confirm { display: flex; gap: var(--s-2); }
+.settings__danger { border-color: var(--accent-crimson); color: var(--accent-crimson); }
+.settings__danger:hover { background: var(--accent-crimson); color: #fff; }
+
+.settings__about { display: grid; gap: var(--s-2); margin-bottom: var(--s-4); }
+.settings__about > div { display: flex; gap: var(--s-4); }
+.settings__about dt { color: var(--text-3); width: 90px; flex-shrink: 0; font-size: var(--fs-sm); }
+.settings__about dd { color: var(--text-2); font-size: var(--fs-sm); }
+
+@media (max-width: 560px) {
+  .settings__row { flex-direction: column; align-items: stretch; }
+  .settings__segmented, .settings__accents { align-self: flex-start; }
+  .settings__name { max-width: none; }
+}
+
+.settings__quiet { display: flex; align-items: center; gap: var(--s-2); }
+.settings__mutes { display: flex; flex-wrap: wrap; gap: var(--s-2); max-width: 60%; justify-content: flex-end; }
+.settings__mute.is-muted { opacity: 0.6; text-decoration: line-through; }

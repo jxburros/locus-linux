@@ -1,0 +1,578 @@
+/* ===========================================================================
+   The spatial operating surface: a fixed, non-scrolling canvas of placed
+   tiles. Neighbors share borders (a 1px bleed makes touching hairlines
+   coincide); rect transitions carry every tile between arrangements — move,
+   resize, focus, viewport — so the workspace transforms instead of swapping.
+   Black negative space is intentional — gaps are background, not bugs.
+   =========================================================================== */
+
+.workspace {
+  --dur-move: 300ms;
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+}
+.workspace.is-drag-active { cursor: grabbing; user-select: none; }
+
+/* ------------------------------- Tile frame -------------------------------- */
+.tile {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  z-index: 1;
+  background: var(--surface);
+  border: var(--border-w) solid var(--border);
+  padding: var(--s-3) var(--s-4);
+  transition:
+    left var(--dur-move) var(--ease),
+    top var(--dur-move) var(--ease),
+    width var(--dur-move) var(--ease),
+    height var(--dur-move) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    opacity var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+/* Border-paint order: whoever is higher covers the shared hairline. */
+.tile:hover { border-color: var(--border-strong); z-index: 2; }
+.tile.is-selected { border-color: var(--accent); z-index: 3; }
+.tile.is-nudging { border-color: var(--border-strong); z-index: 4; }
+.tile.is-focused { z-index: 5; }
+.tile.is-dragging { opacity: 0.35; }
+.tile.is-sleeping .tile__body { opacity: 0.55; filter: saturate(0.4); }
+.tile--accent { border-top: 2px solid var(--accent); }
+
+/* Direct manipulation tracks the pointer — no rect easing while held. */
+.tile.is-manipulating {
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    opacity var(--dur) var(--ease);
+  z-index: 4;
+}
+
+/* Arrival: tiles materialize in place, they do not pop. */
+@keyframes tile-enter {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+.tile.is-entering { animation: tile-enter 260ms var(--ease); }
+
+/* Presentation modes (brief §10) — padding tightens as identity compresses. */
+.tile--compact { padding: var(--s-2) var(--s-3); }
+.tile--mini { padding: var(--s-1) var(--s-2); }
+.tile--icon { padding: 0; }
+.tile--mini .tile__head { margin-bottom: 2px; }
+.tile--mini .tile__name { letter-spacing: 0.02em; }
+.tile__iconface {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-md);
+  color: var(--accent);
+  overflow: hidden;
+}
+
+/* Gap tiles: deliberately held emptiness. */
+.tile--gap {
+  background: transparent;
+  border: var(--border-w) dashed var(--border);
+  align-items: stretch;
+  justify-content: center;
+}
+.tile--gap:hover { border-color: var(--border-strong); }
+
+/* Persistent edge widgets: chrome made from tiles. */
+.tile--widget {
+  z-index: 2;
+  background: var(--bg-sunken);
+}
+.tile--widget.is-selected { z-index: 3; }
+
+/* Chromeless tiles (Home): the content is its own chrome. */
+.tile--chromeless { padding: 0; }
+
+/* The focused tile is the app surface. */
+.tile.is-focused {
+  background: var(--surface);
+  border-color: var(--border-strong);
+}
+
+.tile__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-bottom: var(--s-2);
+  cursor: grab;
+  touch-action: none;
+  min-width: 0;
+}
+.workspace--stacked .tile__head,
+.tile--widget .tile__head,
+.tile.is-focused .tile__head { cursor: default; }
+.tile__head:active { cursor: grabbing; }
+.tile__icon { font-size: var(--fs-sm); color: var(--accent); flex: none; }
+.tile__name {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-2);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tile__origin {
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tile__back {
+  flex: none;
+  font-size: var(--fs-xs);
+  padding: 2px var(--s-2);
+  border: var(--border-w) solid var(--border);
+  color: var(--text-2);
+}
+.tile__back:hover { color: var(--text); border-color: var(--border-strong); background: var(--surface-2); }
+.tile__lc {
+  width: 7px; height: 7px; border-radius: 50%; flex: none;
+}
+.tile__lc--warm { background: var(--text-3); }
+.tile__lc--sleeping { background: transparent; border: 1px solid var(--text-3); }
+.tile__ctl {
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  line-height: 1;
+  padding: 2px var(--s-1);
+  flex: none;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+.tile:hover .tile__ctl,
+.tile.is-selected .tile__ctl,
+.tile__ctl:focus-visible { opacity: 1; }
+.tile__ctl:hover { color: var(--accent); }
+
+.tile__body { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.tile__body > * { flex: 1; min-height: 0; }
+.tile__app { flex: 1; min-height: 0; overflow-y: auto; }
+
+/* Resize handles — every side and corner is a grip (issue #11) --------------- */
+.tile__resize { position: absolute; z-index: 6; touch-action: none; }
+.tile__resize--e { top: 7px; right: -3px; width: 7px; height: calc(100% - 14px); cursor: ew-resize; }
+.tile__resize--w { top: 7px; left: -3px; width: 7px; height: calc(100% - 14px); cursor: ew-resize; }
+.tile__resize--s { left: 7px; bottom: -3px; height: 7px; width: calc(100% - 14px); cursor: ns-resize; }
+.tile__resize--n { left: 7px; top: -3px; height: 7px; width: calc(100% - 14px); cursor: ns-resize; }
+.tile__resize--se { right: -3px; bottom: -3px; width: 14px; height: 14px; cursor: nwse-resize; }
+.tile__resize--nw { left: -3px; top: -3px; width: 14px; height: 14px; cursor: nwse-resize; }
+.tile__resize--ne { right: -3px; top: -3px; width: 14px; height: 14px; cursor: nesw-resize; }
+.tile__resize--sw { left: -3px; bottom: -3px; width: 14px; height: 14px; cursor: nesw-resize; }
+.tile__resize--se::after {
+  content: "";
+  position: absolute; right: 4px; bottom: 4px;
+  width: 6px; height: 6px;
+  border-right: 2px solid var(--text-3);
+  border-bottom: 2px solid var(--text-3);
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+.tile:hover .tile__resize--se::after { opacity: 1; }
+
+/* Edge widgets resize their band from the inner edge. */
+.tile__resize--band-top { left: 0; right: 0; bottom: -3px; height: 7px; cursor: ns-resize; }
+.tile__resize--band-bottom { left: 0; right: 0; top: -3px; height: 7px; cursor: ns-resize; }
+.tile__resize--band-left { top: 0; bottom: 0; right: -3px; width: 7px; cursor: ew-resize; }
+.tile__resize--band-right { top: 0; bottom: 0; left: -3px; width: 7px; cursor: ew-resize; }
+
+/* Replace warning (drop replace is explicit, never accidental) --------------- */
+.tile.is-replace-target { border-color: var(--accent-crimson); }
+.tile__replace-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--scrim);
+  color: #fff;
+  font-size: var(--fs-sm);
+  text-align: center;
+  padding: var(--s-2);
+}
+
+/* Contextual guides (brief §3) ------------------------------------------------ */
+.workspace__guide {
+  position: absolute;
+  z-index: 8;
+  pointer-events: none;
+}
+.workspace__guide--v { width: 1px; }
+.workspace__guide--h { height: 1px; }
+.workspace__guide--edge { background: var(--accent); }
+.workspace__guide--center.workspace__guide--v {
+  background: repeating-linear-gradient(to bottom, var(--accent) 0 6px, transparent 6px 12px);
+}
+.workspace__guide--center.workspace__guide--h {
+  background: repeating-linear-gradient(to right, var(--accent) 0 6px, transparent 6px 12px);
+}
+.workspace__guide--gap { background: var(--accent-amber); }
+.workspace__guide-size {
+  position: absolute;
+  z-index: 8;
+  pointer-events: none;
+  border: 1px dashed var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+/* Placement preview ---------------------------------------------------------- */
+.workspace__ghost {
+  position: absolute;
+  z-index: 9;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  padding: var(--s-2);
+  border: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  transition: left var(--dur-fast) linear, top var(--dur-fast) linear,
+    width var(--dur-fast) linear, height var(--dur-fast) linear;
+}
+.workspace__ghost-label {
+  font-size: var(--fs-xs);
+  font-family: var(--font-mono);
+  background: var(--surface);
+  border: var(--border-w) solid var(--border-strong);
+  padding: 2px var(--s-2);
+  color: var(--text);
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.workspace__ghost--replace { border-color: var(--accent-crimson); background: color-mix(in srgb, var(--accent-crimson) 12%, transparent); }
+.workspace__ghost--invalid {
+  border-color: var(--text-3);
+  border-style: dashed;
+  background: transparent;
+}
+.workspace__ghost--fill-gap { border-style: dashed; }
+
+/* Departure: removed tiles fade from where they were ------------------------- */
+@keyframes tile-leave {
+  from { opacity: 0.85; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.94); }
+}
+.workspace__leave {
+  position: absolute;
+  z-index: 7;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  overflow: hidden;
+  border: var(--border-w) dashed var(--border-strong);
+  background: var(--surface);
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  animation: tile-leave 240ms var(--ease) forwards;
+}
+.workspace__leave-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Carry chip ------------------------------------------------------------------ */
+.workspace__carry {
+  position: fixed;
+  z-index: calc(var(--z-palette) + 1);
+  pointer-events: none;
+  background: var(--surface);
+  border: var(--border-w) solid var(--accent);
+  color: var(--text);
+  font-size: var(--fs-xs);
+  padding: var(--s-1) var(--s-2);
+  white-space: nowrap;
+}
+.workspace__carry--scratch { border-color: var(--border-strong); color: var(--text-2); }
+
+/* Scratchpad drop highlight ---------------------------------------------------- */
+.workspace--scratch-hover .tile[data-tile-kind="scratchpad"] {
+  border-color: var(--accent);
+  border-style: dashed;
+}
+
+/* Empty workspace ---------------------------------------------------------------- */
+.workspace__empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+}
+
+/* --------------------------- Home widget content ---------------------------- */
+.homew {
+  display: flex;
+  flex-direction: row; /* .tilec defaults to column */
+  align-items: center;
+  gap: var(--s-2);
+  height: 100%;
+  padding: 0 var(--s-3);
+  min-width: 0;
+  overflow: hidden;
+}
+.homew--vertical {
+  flex-direction: column;
+  padding: var(--s-3) 0;
+  justify-content: flex-start;
+}
+.homew--icon { justify-content: center; padding: 0; }
+.homew__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+  color: var(--text);
+  padding: 2px var(--s-2);
+  flex: none;
+}
+.homew__brand:hover { background: var(--surface-2); }
+.homew__mark { color: var(--accent); font-size: var(--fs-md); }
+.homew__mode {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px var(--s-2);
+  border: var(--border-w) solid var(--border);
+  color: var(--text-2);
+  flex: none;
+}
+.homew__mode--freeform { border-color: var(--accent); color: var(--accent); }
+.homew__mode--focus { border-color: var(--border-strong); color: var(--text); }
+.homew__ws {
+  font-size: var(--fs-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.homew__saved {
+  font-size: var(--fs-xs);
+  color: var(--accent);
+  animation: saved-in var(--dur) var(--ease);
+  flex: none;
+}
+@keyframes saved-in { from { opacity: 0; } to { opacity: 1; } }
+.homew__spring { flex: 1; min-width: 0; }
+.homew--vertical .homew__spring { flex: 1; min-height: 0; }
+.homew__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 28px;
+  padding: 0 var(--s-2);
+  color: var(--text-2);
+  position: relative;
+  font-size: var(--fs-sm);
+  flex: none;
+}
+.homew__item:hover { color: var(--text); background: var(--surface-2); }
+.homew__freeform { font-size: var(--fs-xs); border: var(--border-w) solid var(--border); }
+.homew__kbd {
+  font-size: var(--fs-xs);
+  padding: 0 var(--s-1);
+  border: var(--border-w) solid var(--border);
+  color: var(--text-3);
+}
+.homew__ai-name { font-size: var(--fs-xs); }
+.homew__badge {
+  font-size: var(--fs-xs);
+  background: var(--accent);
+  color: var(--accent-ink);
+  padding: 0 5px;
+  min-width: 16px;
+  text-align: center;
+}
+.homew__battery { font-size: var(--fs-xs); color: var(--text-2); padding: 0 var(--s-1); flex: none; }
+.homew__time { font-size: var(--fs-sm); padding: 0 var(--s-2); flex: none; }
+
+/* Header items are slots so spacers can stretch and clusters stay tight. */
+.homew__slot { display: inline-flex; align-items: center; min-width: 0; flex: none; }
+.homew__slot:has(.homew__spring) { flex: 1; min-width: 0; }
+.homew--vertical .homew__slot:has(.homew__spring) { flex: 1; min-height: 0; }
+.homew__wsgroup { display: inline-flex; align-items: center; gap: var(--s-2); min-width: 0; }
+
+/* Dashboard ↔ Focus switcher (issue #6). */
+.homew__switch { display: inline-flex; border: var(--border-w) solid var(--border); flex: none; }
+.homew__switch-btn {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 3px var(--s-2);
+  color: var(--text-3);
+}
+.homew__switch-btn:hover { color: var(--text); background: var(--surface-2); }
+.homew__switch-btn.is-active { color: var(--accent-ink); background: var(--accent); }
+
+/* Freeform controls, living in the header while Freeform is active (issue #7). */
+.homew__ff, .homew__ffsave { display: inline-flex; align-items: center; gap: var(--s-1); flex: none; }
+.homew__ffbtn { border: var(--border-w) solid var(--accent); color: var(--accent); font-size: var(--fs-xs); }
+.homew__ffbtn:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
+.homew__ffname { width: 160px; min-height: 26px; font-size: var(--fs-xs); }
+
+/* ------------------------------ Stacked (phone) ----------------------------- */
+.workspace--stacked {
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--s-3);
+  padding-bottom: 72px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.workspace__stack { display: flex; flex-direction: column; gap: var(--s-3); }
+.workspace--stacked .tile {
+  position: relative;
+  min-height: 96px;
+}
+.workspace--stacked .tile--chromeless { min-height: 48px; }
+.workspace--stacked .tile__ctl { opacity: 1; }
+.workspace__stackwidget { flex: none; }
+.workspace__stackwidget .tile { min-height: 48px; height: 48px; }
+.workspace__stackfocus {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+.workspace__stackfocus .tile { flex: 1; min-height: 0; }
+.workspace__shelf {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: var(--z-topbar);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  overflow-x: auto;
+  padding: var(--s-2) var(--s-3);
+  background: var(--surface);
+  border-top: var(--border-w) solid var(--border);
+}
+.workspace__shelf-item { cursor: pointer; flex: none; }
+
+/* ------------------------------- Context menu ------------------------------- */
+.tmenu {
+  position: fixed;
+  z-index: var(--z-palette);
+  min-width: 220px;
+  background: var(--surface);
+  border: var(--border-w) solid var(--border-strong);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  padding: var(--s-1);
+  display: flex;
+  flex-direction: column;
+}
+.tmenu__title {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  padding: var(--s-2) var(--s-3) var(--s-1);
+}
+.tmenu__item {
+  text-align: left;
+  padding: var(--s-2) var(--s-3);
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+}
+.tmenu__item:hover { background: var(--surface-2); color: var(--text); }
+.tmenu__item--danger:hover { color: var(--accent-crimson); }
+.tmenu__sep { border: 0; height: var(--border-w); background: var(--border); margin: var(--s-1) 0; }
+.tmenu__row { display: flex; gap: var(--s-1); padding: var(--s-1) var(--s-3); }
+.tmenu__chip {
+  font-size: var(--fs-xs);
+  font-family: var(--font-mono);
+  padding: 2px var(--s-2);
+  border: var(--border-w) solid var(--border);
+  color: var(--text-2);
+}
+.tmenu__chip.is-active { border-color: var(--accent); color: var(--accent); }
+.tmenu__hint { font-size: var(--fs-xs); padding: var(--s-1) var(--s-3) var(--s-2); }
+
+/* ------------------------------ Customize dialog ----------------------------- */
+.tdialog {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-palette);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-4);
+}
+.tdialog__scrim { position: absolute; inset: 0; background: var(--scrim); }
+.tdialog__panel {
+  position: relative;
+  width: min(440px, 94vw);
+  max-height: 86vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border: var(--border-w) solid var(--border-strong);
+  padding: var(--s-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.tdialog__title { font-size: var(--fs-md); font-weight: var(--fw-semibold); }
+.tdialog__field { display: flex; flex-direction: column; gap: var(--s-1); font-size: var(--fs-sm); }
+.tdialog__field--grow { flex: 1; }
+.tdialog__row { display: flex; gap: var(--s-4); flex-wrap: wrap; }
+.tdialog__row--wrap { align-items: center; gap: var(--s-2); }
+
+/* Header items editor (issue #6) ---------------------------------------------- */
+.tdialog__header-editor { display: flex; flex-direction: column; gap: var(--s-2); }
+.tdialog__hlist {
+  display: flex;
+  flex-direction: column;
+  border: var(--border-w) solid var(--border);
+  max-height: 220px;
+  overflow-y: auto;
+}
+.tdialog__hitem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+  padding: var(--s-1) var(--s-2);
+  font-size: var(--fs-sm);
+}
+.tdialog__hitem + .tdialog__hitem { border-top: var(--border-w) solid var(--border); }
+.tdialog__hname { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tdialog__hctl { display: inline-flex; gap: var(--s-1); flex: none; }
+.tdialog__check { display: flex; align-items: center; gap: var(--s-2); font-size: var(--fs-sm); }
+.tdialog__check input { accent-color: var(--accent); }
+.tdialog__actions { display: flex; justify-content: flex-end; gap: var(--s-2); }
+
+/* Low-power mode: stop non-essential animation (spec §20). ------------------- */
+[data-low-power] * {
+  animation-duration: 0.001ms !important;
+  transition-duration: 0.001ms !important;
+}
+/* Reduced motion by user setting (in addition to the OS media query). */
+[data-reduced-motion] *,
+[data-reduced-motion] *::before,
+[data-reduced-motion] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}

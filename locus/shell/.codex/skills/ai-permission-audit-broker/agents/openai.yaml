@@ -1,0 +1,6 @@
+interface:
+  display_name: "AI Permission and Audit Broker"
+  short_description: "Use when changing AI capability, approval, and audit-log boundaries."
+  default_prompt: "Use $ai-permission-audit-broker to work safely on the relevant repository task."
+policy:
+  allow_implicit_invocation: true

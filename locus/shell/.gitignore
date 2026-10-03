@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Logs and OS files
+*.log
+.DS_Store
+
+# Playwright (real-browser integration tests)
+test-results/
+playwright-report/
+
+# Keep package-local contributor guidance visible despite upstream Linux's
+# blanket dot-directory ignore rule. No root kernel ignore policy is changed.
+!.codex/
+!.codex/**
+!.github/
+!.github/**

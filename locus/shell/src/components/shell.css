@@ -1,0 +1,89 @@
+/* ===========================================================================
+   Shell chrome: the root frame and the command palette.
+   The desktop layer styles live in components/desktop/*.css.
+   =========================================================================== */
+
+/* ------------------------------- Root layout ------------------------------- */
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg);
+}
+/* The operating surface is fixed — it never scrolls as a webpage (brief §9).
+   App content may scroll *inside* tiles; the stacked phone layout scrolls
+   internally as the sanctioned small-screen mode. */
+.shell__view {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ----------------------------- Command palette ----------------------------- */
+.palette {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-palette);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 12vh;
+}
+.palette__scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+}
+.palette__panel {
+  position: relative;
+  width: min(600px, 92vw);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: var(--border-w) solid var(--border-strong);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+}
+.palette__input-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 0 var(--s-4);
+  border-bottom: var(--border-w) solid var(--border);
+}
+.palette__input-icon { color: var(--text-3); font-size: var(--fs-md); }
+.palette__input {
+  flex: 1;
+  min-height: 52px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: var(--fs-md);
+  color: var(--text);
+}
+.palette__input::placeholder { color: var(--text-3); }
+.palette__esc {
+  font-size: var(--fs-xs);
+  padding: 2px var(--s-2);
+  border: var(--border-w) solid var(--border);
+  color: var(--text-3);
+}
+.palette__list { overflow-y: auto; padding: var(--s-2); }
+.palette__group { margin-bottom: var(--s-2); }
+.palette__group-label { padding: var(--s-2) var(--s-3); }
+.palette__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 42px;
+  padding: 0 var(--s-3);
+  text-align: left;
+  color: var(--text-2);
+}
+.palette__item.is-active { background: var(--surface-2); color: var(--text); }
+.palette__item-icon { width: 1.25em; text-align: center; color: var(--text-3); }
+.palette__item.is-active .palette__item-icon { color: var(--accent); }
+.palette__item-label { flex: 1; font-size: var(--fs-sm); }
+.palette__item-hint { font-size: var(--fs-xs); }
+.palette__empty { padding: var(--s-5); text-align: center; }

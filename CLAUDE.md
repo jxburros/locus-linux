@@ -7,7 +7,8 @@ Claude must follow `AGENTS.md` first — especially the hard constraints: the up
 1. `AGENTS.md`.
 2. `locus/README.md`.
 3. `locus/docs/readiness-plan.md` for plan state and open decisions.
-4. The canonical integration plan in the sibling repo: `locus-os/development-docs/linuxIntegrationPlan.md`.
+4. `locus/docs/integration-plan.md` and `locus/docs/reference-guide.md`.
+5. For shell work, `locus/shell/AGENTS.md` and its local task-matched skills.
 
 ## Task-Matched Skills
 

@@ -1,0 +1,126 @@
+/*
+  Locus design tokens.
+  ---------------------------------------------------------------------------
+  Monochrome-first. One accent. Straight lines, hairline borders, zero radius.
+  Everything is a CSS custom property so themes/accents/density are a data-*
+  attribute flip on <html>, applied by core/theme.ts.
+
+  The palette is a neutral ramp (--n-0 lightest .. --n-12 darkest). Light and
+  dark themes map semantic tokens onto that ramp in opposite directions, so
+  components never reference a raw color — only semantic tokens.
+*/
+
+:root {
+  /* Neutral ramp — slightly cool grey, not pure black/white (easier on eyes) */
+  --n-0:  #ffffff;
+  --n-1:  #f7f8f9;
+  --n-2:  #eceef0;
+  --n-3:  #dfe1e4;
+  --n-4:  #c9cccf;
+  --n-5:  #a7abb0;
+  --n-6:  #82878d;
+  --n-7:  #5f646a;
+  --n-8:  #43474d;
+  --n-9:  #2c2f34;
+  --n-10: #1c1e22;
+  --n-11: #141519;
+  --n-12: #0c0d0f;
+
+  /* Accent presets. core/theme.ts copies one pair into --accent / --accent-ink. */
+  --accent-slate:   #3f6fb0;   --accent-slate-ink:   #ffffff;
+  --accent-amber:   #b07d2f;   --accent-amber-ink:   #ffffff;
+  --accent-green:   #3f8f6b;   --accent-green-ink:   #ffffff;
+  --accent-violet:  #7159b8;   --accent-violet-ink:  #ffffff;
+  --accent-crimson: #b0463f;   --accent-crimson-ink: #ffffff;
+
+  /* Default accent (overridden at runtime) */
+  --accent: var(--accent-slate);
+  --accent-ink: #ffffff;
+
+  /* Type */
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-base: 0.9375rem;
+  --fs-md: 1.0625rem;
+  --fs-lg: 1.375rem;
+  --fs-xl: 1.875rem;
+  --fs-2xl: 2.75rem;
+
+  --lh-tight: 1.15;
+  --lh-normal: 1.5;
+
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+
+  /* Spacing scale — density flips --u (base unit) below */
+  --u: 8px;
+  --s-1: calc(var(--u) * 0.5);
+  --s-2: var(--u);
+  --s-3: calc(var(--u) * 1.5);
+  --s-4: calc(var(--u) * 2);
+  --s-5: calc(var(--u) * 3);
+  --s-6: calc(var(--u) * 4);
+  --s-7: calc(var(--u) * 6);
+  --s-8: calc(var(--u) * 8);
+
+  /* Structure */
+  --radius: 0px;              /* straight lines by request */
+  --border-w: 1px;
+  --tap: 44px;                /* minimum accessible tap target */
+
+  /* Motion — restrained, respects prefers-reduced-motion in globals.css */
+  --dur-fast: 90ms;
+  --dur: 150ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+
+  --z-topbar: 40;
+  --z-sidebar: 30;
+  --z-overlay: 90;
+  --z-palette: 100;
+}
+
+/* ------------------------------- Dark (default) ------------------------------ */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg:        var(--n-12);
+  --bg-sunken: var(--n-11);
+  --surface:   var(--n-11);
+  --surface-2: var(--n-10);
+  --surface-3: var(--n-9);
+  --border:    var(--n-9);
+  --border-strong: var(--n-8);
+  --text:      var(--n-1);
+  --text-2:    var(--n-5);
+  --text-3:    var(--n-6);
+  --text-inverse: var(--n-12);
+  --shadow: none;
+  --scrim: rgba(0, 0, 0, 0.55);
+}
+
+/* ---------------------------------- Light ----------------------------------- */
+[data-theme="light"] {
+  color-scheme: light;
+  --bg:        var(--n-1);
+  --bg-sunken: var(--n-2);
+  --surface:   var(--n-0);
+  --surface-2: var(--n-1);
+  --surface-3: var(--n-2);
+  --border:    var(--n-3);
+  --border-strong: var(--n-4);
+  --text:      var(--n-11);
+  --text-2:    var(--n-7);
+  --text-3:    var(--n-6);
+  --text-inverse: var(--n-0);
+  --shadow: none;
+  --scrim: rgba(12, 13, 15, 0.35);
+}
+
+/* --------------------------------- Density ---------------------------------- */
+[data-density="compact"]     { --u: 6px;  --fs-base: 0.875rem; }
+[data-density="comfortable"] { --u: 8px; }
+[data-density="spacious"]    { --u: 10px; }

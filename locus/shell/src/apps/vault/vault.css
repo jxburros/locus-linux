@@ -1,0 +1,37 @@
+.vault { display: flex; flex-direction: column; gap: var(--s-4); padding: var(--s-4); }
+.vault__rule {
+  font-size: var(--fs-sm);
+  border: var(--border-w) solid var(--border);
+  border-left: 3px solid var(--accent);
+  padding: var(--s-3);
+  color: var(--text-2);
+}
+.vault__list { display: flex; flex-direction: column; }
+.vault__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  padding: var(--s-3) 0;
+  border-bottom: var(--border-w) solid var(--border);
+}
+.vault__main { display: flex; align-items: center; gap: var(--s-2); flex-wrap: wrap; }
+.vault__label { font-weight: var(--fw-medium); }
+.vault__ref { font-size: var(--fs-xs); color: var(--text-2); }
+.vault__valuerow { display: flex; align-items: center; gap: var(--s-2); flex-wrap: wrap; }
+.vault__value { font-size: var(--fs-sm); background: var(--surface-2); padding: 2px var(--s-2); }
+.vault__ai { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--fs-xs); color: var(--text-2); }
+.vault__x { color: var(--text-3); padding: 0 var(--s-1); margin-left: auto; }
+.vault__x:hover { color: var(--text); }
+.vault__used { font-size: var(--fs-xs); }
+.vault__add { display: flex; gap: var(--s-2); flex-wrap: wrap; align-items: center; }
+.vault__grow { flex: 1; min-width: 160px; }
+.vault__honesty { font-size: var(--fs-xs); margin-top: var(--s-2); }
+.vault__scan { min-height: 90px; width: 100%; resize: vertical; font-family: var(--font-mono); font-size: var(--fs-sm); }
+.vault__findings { font-size: var(--fs-sm); margin-top: var(--s-2); color: var(--text-2); }
+.vault__findings--bad { color: var(--accent-crimson, #b3395c); }
+
+.vault__gate { display: flex; flex-direction: column; gap: var(--s-3); padding: var(--s-4); margin-bottom: var(--s-4); }
+.vault__gatehead { font-size: var(--fs-sm); color: var(--text-2); }
+.vault__gaterow { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.vault__lockbar { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-4); }
+.vault__error { color: var(--danger, #c0392b); font-size: var(--fs-xs); }

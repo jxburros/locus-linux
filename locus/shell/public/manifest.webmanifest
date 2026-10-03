@@ -1,0 +1,24 @@
+{
+  "name": "Locus",
+  "short_name": "Locus",
+  "description": "A local-first, AI-aware personal operating environment.",
+  "id": "/locus-os/",
+  "start_url": "/locus-os/",
+  "scope": "/locus-os/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0c0d0f",
+  "theme_color": "#0c0d0f",
+  "categories": [
+    "productivity",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "/locus-os/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

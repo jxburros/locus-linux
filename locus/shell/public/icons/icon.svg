@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Locus">
+  <rect width="512" height="512" fill="#0c0d0f"/>
+  <rect x="40" y="40" width="432" height="432" fill="none" stroke="#3f6fb0" stroke-width="8"/>
+  <!-- Locus mark: a disc split into a solid and an outlined half — the point in focus. -->
+  <g transform="translate(256 256)">
+    <circle r="132" fill="none" stroke="#f7f8f9" stroke-width="8"/>
+    <path d="M0 -132 A132 132 0 0 1 0 132 Z" fill="#f7f8f9"/>
+    <circle r="20" fill="#3f6fb0"/>
+  </g>
+</svg>

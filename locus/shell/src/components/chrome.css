@@ -1,0 +1,35 @@
+/* ===========================================================================
+   The little chrome that remains: first-run onboarding. (Freeform controls
+   moved into the header segments — see HomeTile.)
+   =========================================================================== */
+
+/* -------------------------------- Onboarding -------------------------------- */
+.onboard {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-palette);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-4);
+}
+.onboard__scrim { position: absolute; inset: 0; background: var(--scrim); }
+.onboard__panel {
+  position: relative;
+  width: min(560px, 94vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border: var(--border-w) solid var(--border-strong);
+  padding: var(--s-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.onboard__title { font-size: var(--fs-xl); font-weight: var(--fw-semibold); line-height: var(--lh-tight); }
+.onboard__sub { font-size: var(--fs-base); }
+.onboard__lessons { display: flex; flex-direction: column; gap: var(--s-3); }
+.onboard__lesson { display: flex; gap: var(--s-3); font-size: var(--fs-sm); align-items: baseline; }
+.onboard__mark { color: var(--accent); width: 1.4em; text-align: center; flex: none; }
+.onboard__name { display: flex; flex-direction: column; gap: var(--s-1); font-size: var(--fs-sm); }
+.onboard__start { align-self: flex-start; }

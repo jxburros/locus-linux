@@ -1,6 +1,6 @@
 ---
 name: locus-image-boot
-description: Build and boot Locus Linux correctly — kernel config fragments, the bootable kiosk image, the boot-to-shell session chain, and image CI. Use when working under locus/configs/ or locus/build/, changing the session/userspace composition, integrating the locus-os bundle, or setting up QEMU/CI boot testing.
+description: Build and boot Locus Linux correctly — kernel config fragments, the bootable kiosk image, the boot-to-shell session chain, and image CI. Use when working under locus/configs/ or locus/build/, changing the session/userspace composition, integrating the local shell bundle, or setting up QEMU/CI boot testing.
 ---
 
 # Locus Image and Boot
@@ -14,16 +14,16 @@ systemd-boot → kernel (pinned LTS + locus-kiosk fragment)
   → systemd userspace (seatd, NetworkManager, PipeWire)
   → locus-session.service
       → cage (Wayland kiosk compositor)
-          → chromium --kiosk --app=http://localhost:<port>  (dedicated persistent profile)
-              ← locus-shelld: static server serving the locus-os production bundle
+          → chromium --kiosk --app=http://localhost:<port>/locus-os/  (dedicated persistent profile)
+              ← locus-shelld: static server serving locus/shell/dist/ at /locus-os/
 ```
 
 Design rules that are not negotiable:
 
 - **The bundle is served from a localhost origin, never `file://`** — `file://` breaks origin semantics, storage, and the app's assumptions.
 - **The browser profile is dedicated and persistent** — user data currently lives in web storage; losing the profile is losing the user's data. The profile location must be on the persistent data partition and covered by any future backup story.
-- **The locus-os bundle is a build input, not a committed artifact**: built from a pinned locus-os git ref during image assembly. Record the ref in the image metadata.
-- **Kiosk policy is explicit**: no tabs, no browser chrome, defined external-link behavior, PWA install prompts suppressed. Coordinate anything needing app-side support with locus-os (see its `locus-linux-translation` skill).
+- **The shell bundle is a build input, not a committed artifact**: build `locus/shell/` from this repository with its lockfile (`make -C locus shell-build`). Record this repository commit in image metadata. Never require a sibling checkout or remote web-app bundle. Serve at `/locus-os/` to match Vite, manifest, service worker, and tests; changing the origin/path requires a data/profile migration decision.
+- **Kiosk policy is explicit**: no tabs, no browser chrome, defined external-link behavior, PWA install prompts suppressed. Make shell-side changes in `locus/shell/` (see its local `skills/locus-linux-translation/SKILL.md`).
 - **Identity constraints bind the image**: no telemetry, no default cloud services, no preinstalled accounts. Network exists for the user's explicit use, not the system's.
 
 ## Kernel config fragments (`locus/configs/`)
@@ -36,7 +36,7 @@ Design rules that are not negotiable:
 ## Image pipeline (`locus/build/`)
 
 - Builder choice (mkosi vs Buildroot vs debos) is an open decision requiring a record in `locus/docs/decisions/` — do not pick silently.
-- Whatever the builder: reproducible from a clean checkout, inputs pinned (package versions or lockfiles where the tool allows, locus-os ref, kernel tag), outputs to a git-ignored directory, no binary blobs committed.
+- Whatever the builder: reproducible from a clean checkout, inputs pinned (package versions or lockfiles where the tool allows, this repository commit, kernel tag), outputs to a git-ignored directory, no binary blobs committed.
 - Provide `locus/build/run-qemu.sh` so a fresh contributor can go from checkout to booted shell in a couple of commands (documented in `locus/README.md` when it lands).
 - Keep the userspace minimal: every package in the image should be traceable to a boot-chain need. Bloat is a security surface and an update cost.
 
